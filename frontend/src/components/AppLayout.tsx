@@ -25,6 +25,18 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {accessToken && (
             <Button color="inherit" component={RouterLink} to="/dashboard">Dashboard</Button>
           )}
+          {(hasRole('ADMIN') || hasRole('MANAGER')) && (
+            <Button color="inherit" component={RouterLink} to="/clubs">Clubs</Button>
+          )}
+          {(hasRole('ADMIN') || hasRole('MANAGER') || hasRole('COACH')) && (
+            <Button color="inherit" component={RouterLink} to="/teams">Teams</Button>
+          )}
+          {(hasRole('ADMIN') || hasRole('MANAGER') || hasRole('COACH')) && (
+            <Button color="inherit" component={RouterLink} to="/players">Players</Button>
+          )}
+          {hasRole('ADMIN') && (
+            <Button color="inherit" component={RouterLink} to="/competitions">Competitions</Button>
+          )}
           {hasRole('ADMIN') && (
             <Button color="inherit" component={RouterLink} to="/admin/posts">Admin Posts</Button>
           )}
