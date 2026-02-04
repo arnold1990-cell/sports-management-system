@@ -36,8 +36,6 @@ const FixturesPage: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
-  const [competitionId, setCompetitionId] = useState('');
-  const [seasonId, setSeasonId] = useState('');
   const [form, setForm] = useState({
     homeTeamId: '',
     awayTeamId: '',
@@ -51,52 +49,26 @@ const FixturesPage: React.FC = () => {
   });
   const [error, setError] = useState<string | null>(null);
 
-  const loadOptions = async () => {
+  const loadData = async () => {
     try {
-      const [teamRes, competitionRes, seasonRes] = await Promise.all([
+      const [fixtureRes, teamRes, competitionRes, seasonRes] = await Promise.all([
+        api.get('/api/fixtures/public'),
         api.get('/api/teams'),
         api.get('/api/competitions'),
         api.get('/api/competitions/seasons')
       ]);
+      setFixtures(fixtureRes.data);
       setTeams(teamRes.data);
       setCompetitions(competitionRes.data);
       setSeasons(seasonRes.data);
-      if (competitionRes.data.length) {
-        setCompetitionId(competitionRes.data[0].id);
-      }
-      if (seasonRes.data.length) {
-        setSeasonId(seasonRes.data[0].id);
-      }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Unable to load filters');
-    }
-  };
-
-  const loadFixtures = async (compId: string, seaId: string) => {
-    if (!compId || !seaId) return;
-    try {
-      const fixtureRes = await api.get('/api/fixtures/public', {
-        params: {
-          competitionId: compId,
-          seasonId: seaId
-        }
-      });
-      setFixtures(fixtureRes.data);
-      setError(null);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Unable to load fixtures');
     }
   };
 
   useEffect(() => {
-    loadOptions();
+    loadData();
   }, []);
-
-  useEffect(() => {
-    if (competitionId && seasonId) {
-      loadFixtures(competitionId, seasonId);
-    }
-  }, [competitionId, seasonId]);
 
   const createFixture = async () => {
     try {
@@ -122,40 +94,16 @@ const FixturesPage: React.FC = () => {
         homeScore: '',
         awayScore: ''
       });
-      if (competitionId && seasonId) {
-        loadFixtures(competitionId, seasonId);
-      }
+      loadData();
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Unable to create fixture');
     }
   };
 
-  const upcomingFixtures = fixtures
-    .filter((fixture) => fixture.status !== 'FINISHED')
-    .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
-
-  const results = fixtures
-    .filter((fixture) => fixture.status === 'FINISHED')
-    .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime());
-
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Fixtures & Results</Typography>
       {error && <Alert severity="error">{error}</Alert>}
-      <Card sx={{ mb: 3 }}>
-        <CardContent sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <TextField select label="Competition" value={competitionId} onChange={(e) => setCompetitionId(e.target.value)}>
-            {competitions.map((competition) => (
-              <MenuItem key={competition.id} value={competition.id}>{competition.name}</MenuItem>
-            ))}
-          </TextField>
-          <TextField select label="Season" value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
-            {seasons.map((season) => (
-              <MenuItem key={season.id} value={season.id}>{season.name}</MenuItem>
-            ))}
-          </TextField>
-        </CardContent>
-      </Card>
       {canManage && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ display: 'grid', gap: 2 }}>
@@ -193,32 +141,8 @@ const FixturesPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
-      <Typography variant="h6" gutterBottom>Upcoming Fixtures</Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        {upcomingFixtures.map((fixture) => (
-          <Grid item xs={12} md={6} key={fixture.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{fixture.homeTeamName} vs {fixture.awayTeamName}</Typography>
-                <Typography variant="body2">{new Date(fixture.matchDate).toLocaleString()}</Typography>
-                <Typography variant="body2">Venue: {fixture.venue}</Typography>
-                <Typography variant="body2">Status: {fixture.status}</Typography>
-                {fixture.homeScore !== null && fixture.homeScore !== undefined && fixture.awayScore !== null && fixture.awayScore !== undefined && (
-                  <Typography variant="body2">Score: {fixture.homeScore} - {fixture.awayScore}</Typography>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {!upcomingFixtures.length && (
-          <Grid item xs={12}>
-            <Alert severity="info">No upcoming fixtures for the selected competition and season.</Alert>
-          </Grid>
-        )}
-      </Grid>
-      <Typography variant="h6" gutterBottom>Results</Typography>
       <Grid container spacing={2}>
-        {results.map((fixture) => (
+        {fixtures.map((fixture) => (
           <Grid item xs={12} md={6} key={fixture.id}>
             <Card>
               <CardContent>
@@ -226,18 +150,13 @@ const FixturesPage: React.FC = () => {
                 <Typography variant="body2">{new Date(fixture.matchDate).toLocaleString()}</Typography>
                 <Typography variant="body2">Venue: {fixture.venue}</Typography>
                 <Typography variant="body2">Status: {fixture.status}</Typography>
-                {fixture.homeScore !== null && fixture.homeScore !== undefined && fixture.awayScore !== null && fixture.awayScore !== undefined && (
+                {fixture.homeScore !== null && fixture.homeScore !== undefined && (
                   <Typography variant="body2">Score: {fixture.homeScore} - {fixture.awayScore}</Typography>
                 )}
               </CardContent>
             </Card>
           </Grid>
         ))}
-        {!results.length && (
-          <Grid item xs={12}>
-            <Alert severity="info">No results recorded for the selected competition and season.</Alert>
-          </Grid>
-        )}
       </Grid>
     </Box>
   );

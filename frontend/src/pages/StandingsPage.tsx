@@ -115,13 +115,6 @@ const StandingsPage: React.FC = () => {
               <TableCell>{row.points}</TableCell>
             </TableRow>
           ))}
-          {!table.length && (
-            <TableRow>
-              <TableCell colSpan={9}>
-                <Alert severity="info">No standings available for the selected competition and season.</Alert>
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
     </Box>
