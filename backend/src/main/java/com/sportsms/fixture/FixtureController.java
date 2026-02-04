@@ -25,11 +25,11 @@ public class FixtureController {
 
     @GetMapping("/public")
     public List<FixtureDto.FixtureResponse> listPublic(
-            @RequestParam(required = false) UUID competitionId,
-            @RequestParam(required = false) UUID seasonId,
-            @RequestParam(required = false) UUID teamId,
-            @RequestParam(required = false) OffsetDateTime from,
-            @RequestParam(required = false) OffsetDateTime to) {
+            @RequestParam(name = "competitionId", required = false) UUID competitionId,
+            @RequestParam(name = "seasonId", required = false) UUID seasonId,
+            @RequestParam(name = "teamId", required = false) UUID teamId,
+            @RequestParam(name = "from", required = false) OffsetDateTime from,
+            @RequestParam(name = "to", required = false) OffsetDateTime to) {
         return fixtureService.list(competitionId, seasonId, teamId, from, to).stream()
                 .map(this::toResponse)
                 .toList();
@@ -38,11 +38,11 @@ public class FixtureController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','COACH','REFEREE')")
     public List<FixtureDto.FixtureResponse> list(
-            @RequestParam(required = false) UUID competitionId,
-            @RequestParam(required = false) UUID seasonId,
-            @RequestParam(required = false) UUID teamId,
-            @RequestParam(required = false) OffsetDateTime from,
-            @RequestParam(required = false) OffsetDateTime to) {
+            @RequestParam(name = "competitionId", required = false) UUID competitionId,
+            @RequestParam(name = "seasonId", required = false) UUID seasonId,
+            @RequestParam(name = "teamId", required = false) UUID teamId,
+            @RequestParam(name = "from", required = false) OffsetDateTime from,
+            @RequestParam(name = "to", required = false) OffsetDateTime to) {
         return fixtureService.list(competitionId, seasonId, teamId, from, to).stream()
                 .map(this::toResponse)
                 .toList();
@@ -50,14 +50,15 @@ public class FixtureController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','COACH')")
-    public FixtureDto.FixtureResponse create(@Valid @RequestBody FixtureDto.FixtureRequest request) {
+    public FixtureDto.FixtureResponse create(@Valid @RequestBody FixtureDto.FixtureCreateRequest request) {
         Fixture fixture = fixtureService.create(request);
         return toResponse(fixture);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','COACH','REFEREE')")
-    public FixtureDto.FixtureResponse update(@PathVariable UUID id, @Valid @RequestBody FixtureDto.FixtureRequest request) {
+    public FixtureDto.FixtureResponse update(@PathVariable("id") UUID id,
+                                             @Valid @RequestBody FixtureDto.FixtureRequest request) {
         Fixture fixture = fixtureService.update(id, request);
         return toResponse(fixture);
     }

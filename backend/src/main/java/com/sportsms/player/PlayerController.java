@@ -24,7 +24,7 @@ public class PlayerController {
     }
 
     @GetMapping
-    public List<PlayerDto.PlayerResponse> list(@RequestParam(required = false) UUID teamId) {
+    public List<PlayerDto.PlayerResponse> list(@RequestParam(name = "teamId", required = false) UUID teamId) {
         return playerService.findAll(teamId).stream()
                 .map(player -> new PlayerDto.PlayerResponse(
                         player.getId(),
@@ -60,7 +60,7 @@ public class PlayerController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','COACH')")
-    public PlayerDto.PlayerResponse update(@PathVariable UUID id, @Valid @RequestBody PlayerDto.PlayerRequest request) {
+    public PlayerDto.PlayerResponse update(@PathVariable("id") UUID id, @Valid @RequestBody PlayerDto.PlayerRequest request) {
         Player player = playerService.update(id, request);
         return new PlayerDto.PlayerResponse(player.getId(),
                 player.getTeam() != null ? player.getTeam().getId() : null,
@@ -77,7 +77,7 @@ public class PlayerController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable("id") UUID id) {
         playerService.delete(id);
     }
 }

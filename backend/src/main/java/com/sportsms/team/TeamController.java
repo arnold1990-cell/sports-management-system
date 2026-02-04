@@ -49,7 +49,7 @@ public class TeamController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','COACH')")
-    public TeamDto.TeamResponse update(@PathVariable UUID id, @Valid @RequestBody TeamDto.TeamRequest request) {
+    public TeamDto.TeamResponse update(@PathVariable("id") UUID id, @Valid @RequestBody TeamDto.TeamRequest request) {
         Team team = teamService.update(id, request);
         return new TeamDto.TeamResponse(team.getId(), team.getName(),
                 team.getClub() != null ? team.getClub().getId() : null,
@@ -59,7 +59,7 @@ public class TeamController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable("id") UUID id) {
         teamService.delete(id);
     }
 }

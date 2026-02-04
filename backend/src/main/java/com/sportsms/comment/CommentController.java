@@ -26,7 +26,7 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}")
-    public Page<CommentDto.CommentResponse> list(@PathVariable UUID postId,
+    public Page<CommentDto.CommentResponse> list(@PathVariable("postId") UUID postId,
                                                  @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "10") int size) {
         return commentService.list(postId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")))
@@ -41,7 +41,7 @@ public class CommentController {
 
     @PostMapping("/post/{postId}")
     @PreAuthorize("isAuthenticated()")
-    public CommentDto.CommentResponse add(@PathVariable UUID postId,
+    public CommentDto.CommentResponse add(@PathVariable("postId") UUID postId,
                                           @Valid @RequestBody CommentDto.CommentRequest request,
                                           Authentication authentication) {
         Comment comment = commentService.add(postId, request, authentication.getName());
@@ -52,7 +52,7 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     @PreAuthorize("hasRole('ADMIN') or @commentSecurity.isOwner(authentication, #commentId)")
-    public void delete(@PathVariable UUID commentId) {
+    public void delete(@PathVariable("commentId") UUID commentId) {
         commentService.delete(commentId);
     }
 }

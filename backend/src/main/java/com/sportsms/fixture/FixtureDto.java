@@ -1,13 +1,26 @@
 package com.sportsms.fixture;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public class FixtureDto {
     public record GoalEventRequest(@NotBlank String scorerName, @NotNull Integer minute, @NotNull UUID teamId) {}
+
+    public record FixtureCreateRequest(@NotNull UUID homeTeamId,
+                                       @NotNull UUID awayTeamId,
+                                       @NotNull UUID competitionId,
+                                       @NotNull UUID seasonId,
+                                       UUID refereeId,
+                                       @NotBlank String venue,
+                                       @JsonAlias("matchDate") @NotNull LocalDateTime kickoffTime,
+                                       MatchStatus status,
+                                       Integer homeScore,
+                                       Integer awayScore) {}
 
     public record FixtureRequest(@NotNull UUID homeTeamId,
                                  @NotNull UUID awayTeamId,

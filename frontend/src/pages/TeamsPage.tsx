@@ -25,12 +25,16 @@ const TeamsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = async () => {
-    const [teamsRes, clubsRes] = await Promise.all([
-      api.get('/api/teams'),
-      api.get('/api/clubs')
-    ]);
-    setTeams(teamsRes.data);
-    setClubs(clubsRes.data);
+    try {
+      const [teamsRes, clubsRes] = await Promise.all([
+        api.get('/api/teams'),
+        api.get('/api/clubs')
+      ]);
+      setTeams(teamsRes.data);
+      setClubs(clubsRes.data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load teams');
+    }
   };
 
   useEffect(() => {

@@ -16,7 +16,8 @@ public class StandingsController {
     }
 
     @GetMapping("/{competitionId}/{seasonId}")
-    public StandingsDto.StandingsResponse getStandings(@PathVariable UUID competitionId, @PathVariable UUID seasonId) {
+    public StandingsDto.StandingsResponse getStandings(@PathVariable("competitionId") UUID competitionId,
+                                                       @PathVariable("seasonId") UUID seasonId) {
         return standingsService.getStandings(competitionId, seasonId);
     }
 }
