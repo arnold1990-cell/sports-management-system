@@ -50,16 +50,20 @@ const FixturesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = async () => {
-    const [fixtureRes, teamRes, competitionRes, seasonRes] = await Promise.all([
-      api.get('/api/fixtures/public'),
-      api.get('/api/teams'),
-      api.get('/api/competitions'),
-      api.get('/api/competitions/seasons')
-    ]);
-    setFixtures(fixtureRes.data);
-    setTeams(teamRes.data);
-    setCompetitions(competitionRes.data);
-    setSeasons(seasonRes.data);
+    try {
+      const [fixtureRes, teamRes, competitionRes, seasonRes] = await Promise.all([
+        api.get('/api/fixtures/public'),
+        api.get('/api/teams'),
+        api.get('/api/competitions'),
+        api.get('/api/competitions/seasons')
+      ]);
+      setFixtures(fixtureRes.data);
+      setTeams(teamRes.data);
+      setCompetitions(competitionRes.data);
+      setSeasons(seasonRes.data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load fixtures');
+    }
   };
 
   useEffect(() => {
@@ -69,10 +73,15 @@ const FixturesPage: React.FC = () => {
   const createFixture = async () => {
     try {
       await api.post('/api/fixtures', {
-        ...form,
+        homeTeamId: form.homeTeamId,
+        awayTeamId: form.awayTeamId,
+        competitionId: form.competitionId,
+        seasonId: form.seasonId,
+        venue: form.venue,
+        kickoffTime: form.matchDate,
+        status: form.status,
         homeScore: form.homeScore ? Number(form.homeScore) : null,
-        awayScore: form.awayScore ? Number(form.awayScore) : null,
-        matchDate: form.matchDate
+        awayScore: form.awayScore ? Number(form.awayScore) : null
       });
       setForm({
         homeTeamId: '',

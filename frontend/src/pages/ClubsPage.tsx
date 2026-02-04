@@ -15,8 +15,12 @@ const ClubsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadClubs = async () => {
-    const response = await api.get('/api/clubs');
-    setClubs(response.data);
+    try {
+      const response = await api.get('/api/clubs');
+      setClubs(response.data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load clubs');
+    }
   };
 
   useEffect(() => {

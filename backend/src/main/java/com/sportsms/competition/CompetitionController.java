@@ -39,7 +39,7 @@ public class CompetitionController {
 
     @PutMapping("/seasons/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public CompetitionDto.SeasonResponse updateSeason(@PathVariable UUID id,
+    public CompetitionDto.SeasonResponse updateSeason(@PathVariable("id") UUID id,
                                                       @Valid @RequestBody CompetitionDto.SeasonRequest request) {
         Season season = competitionService.updateSeason(id, request);
         return new CompetitionDto.SeasonResponse(season.getId(), season.getName(), season.getStartDate(), season.getEndDate());
@@ -47,7 +47,7 @@ public class CompetitionController {
 
     @DeleteMapping("/seasons/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteSeason(@PathVariable UUID id) {
+    public void deleteSeason(@PathVariable("id") UUID id) {
         competitionService.deleteSeason(id);
     }
 
@@ -72,7 +72,7 @@ public class CompetitionController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public CompetitionDto.CompetitionResponse updateCompetition(@PathVariable UUID id,
+    public CompetitionDto.CompetitionResponse updateCompetition(@PathVariable("id") UUID id,
                                                                 @Valid @RequestBody CompetitionDto.CompetitionRequest request) {
         Competition competition = competitionService.updateCompetition(id, request);
         Set<UUID> teamIds = competition.getTeams().stream().map(team -> team.getId()).collect(java.util.stream.Collectors.toSet());
@@ -81,7 +81,7 @@ public class CompetitionController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteCompetition(@PathVariable UUID id) {
+    public void deleteCompetition(@PathVariable("id") UUID id) {
         competitionService.deleteCompetition(id);
     }
 }

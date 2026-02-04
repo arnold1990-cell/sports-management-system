@@ -10,6 +10,7 @@ import com.sportsms.team.TeamRepository;
 import com.sportsms.user.User;
 import com.sportsms.user.UserRepository;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -41,9 +42,9 @@ public class FixtureService {
         return fixtureRepository.filterFixtures(competitionId, seasonId, teamId, from, to);
     }
 
-    public Fixture create(FixtureDto.FixtureRequest request) {
+    public Fixture create(FixtureDto.FixtureCreateRequest request) {
         Fixture fixture = new Fixture();
-        applyRequest(fixture, request);
+        applyCreateRequest(fixture, request);
         return fixtureRepository.save(fixture);
     }
 
@@ -54,7 +55,8 @@ public class FixtureService {
         return fixtureRepository.save(fixture);
     }
 
-    private void applyRequest(Fixture fixture, FixtureDto.FixtureRequest request) {
+    private void applyCreateRequest(Fixture fixture, FixtureDto.FixtureCreateRequest request) {
+        validateTeamPair(request.homeTeamId(), request.awayTeamId());
         Team homeTeam = teamRepository.findById(request.homeTeamId())
                 .orElseThrow(() -> new NotFoundException("Home team not found"));
         Team awayTeam = teamRepository.findById(request.awayTeamId())
@@ -67,13 +69,29 @@ public class FixtureService {
         fixture.setAwayTeam(awayTeam);
         fixture.setCompetition(competition);
         fixture.setSeason(season);
-        if (request.refereeId() != null) {
-            User referee = userRepository.findById(request.refereeId())
-                    .orElseThrow(() -> new NotFoundException("Referee not found"));
-            fixture.setReferee(referee);
-        } else {
-            fixture.setReferee(null);
-        }
+        setReferee(fixture, request.refereeId());
+        fixture.setVenue(request.venue());
+        fixture.setMatchDate(request.kickoffTime().atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        fixture.setStatus(request.status() != null ? request.status() : MatchStatus.SCHEDULED);
+        fixture.setHomeScore(request.homeScore());
+        fixture.setAwayScore(request.awayScore());
+    }
+
+    private void applyRequest(Fixture fixture, FixtureDto.FixtureRequest request) {
+        validateTeamPair(request.homeTeamId(), request.awayTeamId());
+        Team homeTeam = teamRepository.findById(request.homeTeamId())
+                .orElseThrow(() -> new NotFoundException("Home team not found"));
+        Team awayTeam = teamRepository.findById(request.awayTeamId())
+                .orElseThrow(() -> new NotFoundException("Away team not found"));
+        Competition competition = competitionRepository.findById(request.competitionId())
+                .orElseThrow(() -> new NotFoundException("Competition not found"));
+        Season season = seasonRepository.findById(request.seasonId())
+                .orElseThrow(() -> new NotFoundException("Season not found"));
+        fixture.setHomeTeam(homeTeam);
+        fixture.setAwayTeam(awayTeam);
+        fixture.setCompetition(competition);
+        fixture.setSeason(season);
+        setReferee(fixture, request.refereeId());
         fixture.setVenue(request.venue());
         fixture.setMatchDate(request.matchDate());
         fixture.setStatus(request.status());
@@ -91,6 +109,22 @@ public class FixtureService {
                 goal.setMinute(goalRequest.minute());
                 fixture.getGoals().add(goal);
             });
+        }
+    }
+
+    private void validateTeamPair(UUID homeTeamId, UUID awayTeamId) {
+        if (homeTeamId != null && homeTeamId.equals(awayTeamId)) {
+            throw new IllegalArgumentException("Home team and away team must be different");
+        }
+    }
+
+    private void setReferee(Fixture fixture, UUID refereeId) {
+        if (refereeId != null) {
+            User referee = userRepository.findById(refereeId)
+                    .orElseThrow(() -> new NotFoundException("Referee not found"));
+            fixture.setReferee(referee);
+        } else {
+            fixture.setReferee(null);
         }
     }
 }

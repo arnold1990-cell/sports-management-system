@@ -39,7 +39,7 @@ public class UserController {
 
     @PutMapping("/{userId}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public UserDto.UserResponse updateRoles(@PathVariable UUID userId,
+    public UserDto.UserResponse updateRoles(@PathVariable("userId") UUID userId,
                                             @Valid @RequestBody UserDto.UpdateRolesRequest request) {
         User user = userService.updateRoles(userId, request);
         return new UserDto.UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRoles(), user.getCreatedAt());
@@ -47,7 +47,7 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(@PathVariable UUID userId) {
+    public void deleteUser(@PathVariable("userId") UUID userId) {
         userService.deleteUser(userId);
     }
 }

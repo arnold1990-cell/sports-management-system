@@ -41,7 +41,7 @@ public class PostController {
     }
 
     @GetMapping("/published/{id}")
-    public PostDto.PostResponse getPublished(@PathVariable UUID id) {
+    public PostDto.PostResponse getPublished(@PathVariable("id") UUID id) {
         return toResponse(postService.getPublished(id));
     }
 
@@ -66,19 +66,19 @@ public class PostController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public PostDto.PostResponse update(@PathVariable UUID id, @Valid @RequestBody PostDto.PostRequest request) {
+    public PostDto.PostResponse update(@PathVariable("id") UUID id, @Valid @RequestBody PostDto.PostRequest request) {
         return toResponse(postService.update(id, request));
     }
 
     @PatchMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public PostDto.PostResponse publish(@PathVariable UUID id, @RequestParam boolean publish) {
+    public PostDto.PostResponse publish(@PathVariable("id") UUID id, @RequestParam(name = "publish") boolean publish) {
         return toResponse(postService.publish(id, publish));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable("id") UUID id) {
         postService.delete(id);
     }
 

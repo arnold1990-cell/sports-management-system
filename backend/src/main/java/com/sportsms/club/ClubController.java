@@ -38,14 +38,14 @@ public class ClubController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ClubDto.ClubResponse update(@PathVariable UUID id, @Valid @RequestBody ClubDto.ClubRequest request) {
+    public ClubDto.ClubResponse update(@PathVariable("id") UUID id, @Valid @RequestBody ClubDto.ClubRequest request) {
         Club club = clubService.update(id, request);
         return new ClubDto.ClubResponse(club.getId(), club.getName(), club.getCity(), club.getCreatedAt());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable("id") UUID id) {
         clubService.delete(id);
     }
 }
