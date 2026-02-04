@@ -26,9 +26,6 @@ const LoginPage: React.FC = () => {
       <Card>
         <CardContent>
           <Typography variant="h5" gutterBottom>Login</Typography>
-          <Alert severity="info">
-            Demo admin credentials: <strong>admin@sportsms.com</strong> / <strong>Admin123!</strong>
-          </Alert>
           {error && <Alert severity="error">{error}</Alert>}
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, display: 'grid', gap: 2 }}>
             <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
