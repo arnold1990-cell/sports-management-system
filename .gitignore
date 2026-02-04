@@ -1,0 +1,15 @@
+# Java / Spring
+target/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Environment
+.env
+.env.*
+
+# Frontend
+node_modules/
+dist/
