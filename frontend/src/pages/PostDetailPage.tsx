@@ -28,22 +28,32 @@ const PostDetailPage: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const loadPost = async () => {
-    if (!id) return;
-    const response = await api.get(`/api/posts/published/${id}`);
-    setPost(response.data);
-  };
-
-  const loadComments = async () => {
-    if (!id) return;
-    const response = await api.get(`/api/comments/post/${id}`);
-    setComments(response.data.content || []);
+  const loadPostAndComments = async () => {
+    if (!id) {
+      setError('Missing post identifier.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const [postResponse, commentResponse] = await Promise.all([
+        api.get(`/api/posts/published/${id}`),
+        api.get(`/api/comments/post/${id}`)
+      ]);
+      setPost(postResponse.data);
+      setComments(commentResponse.data.content || []);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load post details');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadPost();
-    loadComments();
+    loadPostAndComments();
   }, [id]);
 
   const handleAddComment = async () => {
@@ -51,23 +61,41 @@ const PostDetailPage: React.FC = () => {
     try {
       await api.post(`/api/comments/post/${id}`, { content });
       setContent('');
-      loadComments();
+      loadPostAndComments();
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Unable to add comment');
     }
   };
 
   const handleDelete = async (commentId: string) => {
-    await api.delete(`/api/comments/${commentId}`);
-    loadComments();
+    try {
+      await api.delete(`/api/comments/${commentId}`);
+      loadPostAndComments();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to delete comment');
+    }
   };
 
-  if (!post) {
+  if (loading) {
     return <Typography>Loading post...</Typography>;
+  }
+
+  if (error && !post) {
+    return (
+      <Box>
+        <Alert severity="error">{error}</Alert>
+        <Button sx={{ mt: 2 }} variant="contained" onClick={loadPostAndComments}>Retry</Button>
+      </Box>
+    );
+  }
+
+  if (!post) {
+    return <Typography>No post available.</Typography>;
   }
 
   return (
     <Box>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Card sx={{ mb: 3 }}>
         {post.coverImageUrl && (
           <Box component="img" src={post.coverImageUrl} alt={post.title} sx={{ width: '100%', height: 260, objectFit: 'cover' }} />

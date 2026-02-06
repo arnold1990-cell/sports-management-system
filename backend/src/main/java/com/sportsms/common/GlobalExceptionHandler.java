@@ -5,8 +5,9 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -29,6 +30,19 @@ public class GlobalExceptionHandler {
                 .map(field -> new ApiErrorResponse.FieldErrorResponse(field.getField(), field.getDefaultMessage()))
                 .toList();
         return buildError(HttpStatus.BAD_REQUEST, "Validation failed", request.getRequestURI(), fieldErrors);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                               HttpServletRequest request) {
+        String message = "Invalid value for parameter '" + ex.getName() + "'";
+        return buildError(HttpStatus.BAD_REQUEST, message, request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleMessageNotReadable(HttpMessageNotReadableException ex,
+                                                                     HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "Malformed request payload", request.getRequestURI(), null);
     }
 
     @ExceptionHandler(Exception.class)

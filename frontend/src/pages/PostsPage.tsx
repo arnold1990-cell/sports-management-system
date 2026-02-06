@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardContent, TextField, Typography, Grid, Button } from '@mui/material';
+import { Box, Card, CardContent, TextField, Typography, Grid, Button, Alert } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import api from '../api/client';
 
@@ -16,14 +16,20 @@ const PostsPage: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const loadPosts = async () => {
     const params: any = { page: 0, size: 12 };
     if (keyword) params.keyword = keyword;
     if (from) params.from = new Date(from).toISOString();
     if (to) params.to = new Date(to).toISOString();
-    const response = await api.get('/api/posts/published', { params });
-    setPosts(response.data.content || []);
+    try {
+      const response = await api.get('/api/posts/published', { params });
+      setPosts(response.data.content || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load posts');
+    }
   };
 
   useEffect(() => {
@@ -33,6 +39,7 @@ const PostsPage: React.FC = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Posts & Announcements</Typography>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ display: 'grid', gap: 2 }}>
           <Typography variant="h6">Search</Typography>

@@ -1,0 +1,589 @@
+{
+  "info": {
+    "name": "Sports Management System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"viewer@example.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Viewer User\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('register status', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.environment.set('USER_TOKEN', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('login status', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.environment.set('ADMIN_TOKEN', json.accessToken);",
+                  "  pm.environment.set('REFRESH_TOKEN', json.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/refresh",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{USER_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/logout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clubs",
+      "item": [
+        {
+          "name": "List Clubs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/clubs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "clubs"]
+            }
+          }
+        },
+        {
+          "name": "Create Club",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/clubs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "clubs"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Falcons FC\",\n  \"city\": \"Accra\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('CLUB_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Club",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/clubs/{{CLUB_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "clubs", "{{CLUB_ID}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Falcons FC\",\n  \"city\": \"Kumasi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Club",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/clubs/{{CLUB_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "clubs", "{{CLUB_ID}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "List Teams",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/teams",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "teams"]
+            }
+          }
+        },
+        {
+          "name": "Create Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/teams",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "teams"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Falcons First Team\",\n  \"clubId\": \"{{CLUB_ID}}\",\n  \"coachName\": \"Coach A\",\n  \"homeGround\": \"Main Stadium\",\n  \"logoUrl\": \"https://example.com/logo.png\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('TEAM_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Away Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/teams",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "teams"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Falcons Reserve Team\",\n  \"clubId\": \"{{CLUB_ID}}\",\n  \"coachName\": \"Coach C\",\n  \"homeGround\": \"Training Ground\",\n  \"logoUrl\": \"https://example.com/logo.png\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('AWAY_TEAM_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Team",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/teams/{{TEAM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "teams", "{{TEAM_ID}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Falcons First Team\",\n  \"clubId\": \"{{CLUB_ID}}\",\n  \"coachName\": \"Coach B\",\n  \"homeGround\": \"Main Stadium\",\n  \"logoUrl\": \"https://example.com/logo.png\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Team",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/teams/{{TEAM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "teams", "{{TEAM_ID}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Players",
+      "item": [
+        {
+          "name": "List Players",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/players?teamId={{TEAM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "players"],
+              "query": [
+                { "key": "teamId", "value": "{{TEAM_ID}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Player",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/players",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "players"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teamId\": \"{{TEAM_ID}}\",\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\",\n  \"dob\": \"2000-01-01\",\n  \"position\": \"MID\",\n  \"jerseyNumber\": 10,\n  \"status\": \"ACTIVE\",\n  \"statsSummary\": \"10 goals\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('PLAYER_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Player",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/players/{{PLAYER_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "players", "{{PLAYER_ID}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teamId\": \"{{TEAM_ID}}\",\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\",\n  \"dob\": \"2000-01-01\",\n  \"position\": \"MID\",\n  \"jerseyNumber\": 10,\n  \"status\": \"ACTIVE\",\n  \"statsSummary\": \"12 goals\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Player",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/players/{{PLAYER_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "players", "{{PLAYER_ID}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Competitions & Seasons",
+      "item": [
+        {
+          "name": "List Competitions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/competitions",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "competitions"]
+            }
+          }
+        },
+        {
+          "name": "Create Competition",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/competitions",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "competitions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premier League\",\n  \"type\": \"LEAGUE\",\n  \"teamIds\": [\"{{TEAM_ID}}\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('COMPETITION_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Seasons",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/competitions/seasons",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "competitions", "seasons"]
+            }
+          }
+        },
+        {
+          "name": "Create Season",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/competitions/seasons",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "competitions", "seasons"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2024/25\",\n  \"startDate\": \"2024-08-01\",\n  \"endDate\": \"2025-05-01\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('SEASON_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Fixtures",
+      "item": [
+        {
+          "name": "List Public Fixtures (Filters)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/fixtures/public?competitionId={{COMPETITION_ID}}&seasonId={{SEASON_ID}}&teamId={{TEAM_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "fixtures", "public"],
+              "query": [
+                { "key": "competitionId", "value": "{{COMPETITION_ID}}" },
+                { "key": "seasonId", "value": "{{SEASON_ID}}" },
+                { "key": "teamId", "value": "{{TEAM_ID}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Fixture",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/fixtures",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "fixtures"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"homeTeamId\": \"{{TEAM_ID}}\",\n  \"awayTeamId\": \"{{AWAY_TEAM_ID}}\",\n  \"competitionId\": \"{{COMPETITION_ID}}\",\n  \"seasonId\": \"{{SEASON_ID}}\",\n  \"venue\": \"Main Stadium\",\n  \"kickoffTime\": \"2024-08-20T18:00:00\",\n  \"status\": \"SCHEDULED\",\n  \"homeScore\": null,\n  \"awayScore\": null\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('FIXTURE_ID', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Standings",
+      "item": [
+        {
+          "name": "Get Standings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/standings/{{COMPETITION_ID}}/{{SEASON_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "standings", "{{COMPETITION_ID}}", "{{SEASON_ID}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/dashboard",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "dashboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
