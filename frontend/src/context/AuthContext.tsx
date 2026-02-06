@@ -18,10 +18,21 @@ type AuthContextValue = AuthState & {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const loadStoredRoles = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('roles') || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+};
+
+const normalizeRoles = (roles: string[] | Set<string>) => Array.from(roles);
+
 const initialState: AuthState = {
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
-  roles: JSON.parse(localStorage.getItem('roles') || '[]'),
+  roles: loadStoredRoles(),
   userId: localStorage.getItem('userId'),
   fullName: localStorage.getItem('fullName'),
 };
@@ -44,25 +55,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const response = await api.post('/api/auth/login', { email, password });
     const { accessToken, refreshToken, roles } = response.data;
+    const normalizedRoles = normalizeRoles(roles);
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('roles', JSON.stringify(roles));
+    localStorage.setItem('roles', JSON.stringify(normalizedRoles));
     const profile = await api.get('/api/auth/me');
     localStorage.setItem('userId', profile.data.id);
     localStorage.setItem('fullName', profile.data.fullName);
-    setState({ accessToken, refreshToken, roles: Array.from(roles), userId: profile.data.id, fullName: profile.data.fullName });
+    setState({ accessToken, refreshToken, roles: normalizedRoles, userId: profile.data.id, fullName: profile.data.fullName });
   };
 
   const register = async (email: string, password: string, fullName: string) => {
     const response = await api.post('/api/auth/register', { email, password, fullName });
     const { accessToken, refreshToken, roles } = response.data;
+    const normalizedRoles = normalizeRoles(roles);
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('roles', JSON.stringify(roles));
+    localStorage.setItem('roles', JSON.stringify(normalizedRoles));
     const profile = await api.get('/api/auth/me');
     localStorage.setItem('userId', profile.data.id);
     localStorage.setItem('fullName', profile.data.fullName);
-    setState({ accessToken, refreshToken, roles: Array.from(roles), userId: profile.data.id, fullName: profile.data.fullName });
+    setState({ accessToken, refreshToken, roles: normalizedRoles, userId: profile.data.id, fullName: profile.data.fullName });
   };
 
   const logout = async () => {

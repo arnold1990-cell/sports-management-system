@@ -17,8 +17,13 @@ const AdminPostsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadPosts = async () => {
-    const response = await api.get('/api/posts');
-    setPosts(response.data.content || []);
+    try {
+      const response = await api.get('/api/posts');
+      setPosts(response.data.content || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load posts');
+    }
   };
 
   useEffect(() => {
@@ -29,8 +34,13 @@ const AdminPostsPage: React.FC = () => {
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/api/uploads', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-    setForm((prev) => ({ ...prev, coverImageUrl: response.data.url }));
+    try {
+      const response = await api.post('/api/uploads', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setForm((prev) => ({ ...prev, coverImageUrl: response.data.url }));
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to upload image');
+    }
   };
 
   const savePost = async () => {
@@ -45,13 +55,21 @@ const AdminPostsPage: React.FC = () => {
   };
 
   const togglePublish = async (postId: string, publish: boolean) => {
-    await api.patch(`/api/posts/${postId}/publish`, null, { params: { publish } });
-    loadPosts();
+    try {
+      await api.patch(`/api/posts/${postId}/publish`, null, { params: { publish } });
+      loadPosts();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to update publish status');
+    }
   };
 
   const deletePost = async (postId: string) => {
-    await api.delete(`/api/posts/${postId}`);
-    loadPosts();
+    try {
+      await api.delete(`/api/posts/${postId}`);
+      loadPosts();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to delete post');
+    }
   };
 
   return (

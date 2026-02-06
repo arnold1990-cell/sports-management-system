@@ -34,17 +34,22 @@ const StandingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadOptions = async () => {
-    const [competitionRes, seasonRes] = await Promise.all([
-      api.get('/api/competitions'),
-      api.get('/api/competitions/seasons')
-    ]);
-    setCompetitions(competitionRes.data);
-    setSeasons(seasonRes.data);
-    if (competitionRes.data.length) {
-      setCompetitionId(competitionRes.data[0].id);
-    }
-    if (seasonRes.data.length) {
-      setSeasonId(seasonRes.data[0].id);
+    try {
+      const [competitionRes, seasonRes] = await Promise.all([
+        api.get('/api/competitions'),
+        api.get('/api/competitions/seasons')
+      ]);
+      setCompetitions(competitionRes.data);
+      setSeasons(seasonRes.data);
+      if (competitionRes.data.length) {
+        setCompetitionId(competitionRes.data[0].id);
+      }
+      if (seasonRes.data.length) {
+        setSeasonId(seasonRes.data[0].id);
+      }
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Unable to load standings options');
     }
   };
 
