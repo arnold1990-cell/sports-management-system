@@ -16,6 +16,7 @@ import PostsPage from './pages/PostsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import AdminPostsPage from './pages/AdminPostsPage';
 import UsersPage from './pages/UsersPage';
+import CareerGuidancePage from './pages/CareerGuidancePage';
 
 const App: React.FC = () => {
   return (
@@ -68,6 +69,7 @@ const App: React.FC = () => {
         />
         <Route path="/fixtures" element={<FixturesPage />} />
         <Route path="/standings" element={<StandingsPage />} />
+        <Route path="/career-guidance" element={<CareerGuidancePage />} />
         <Route
           path="/admin/posts"
           element={

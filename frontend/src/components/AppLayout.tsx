@@ -22,6 +22,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Button color="inherit" component={RouterLink} to="/posts">Posts</Button>
           <Button color="inherit" component={RouterLink} to="/fixtures">Fixtures</Button>
           <Button color="inherit" component={RouterLink} to="/standings">Standings</Button>
+          <Button color="inherit" component={RouterLink} to="/career-guidance">Career Guidance</Button>
           {accessToken && (
             <Button color="inherit" component={RouterLink} to="/dashboard">Dashboard</Button>
           )}
