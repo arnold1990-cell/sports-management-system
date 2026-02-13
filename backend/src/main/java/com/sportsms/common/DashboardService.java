@@ -38,8 +38,8 @@ public class DashboardService {
                 }).toList();
 
         long unread = count("notifications") + count("chat_messages") - count("message_read_receipts");
-        long bookingsToday = countWhere("facility_bookings", "start_date_time::date = current_date");
-        long bookingsWeek = countWhere("facility_bookings", "start_date_time::date between current_date and current_date + interval '7 day'");
+        long bookingsToday = countWhere("facility_bookings", "cast(start_date_time as date) = current_date");
+        long bookingsWeek = countWhere("facility_bookings", "cast(start_date_time as date) between current_date and current_date + interval '7 day'");
         List<DashboardDto.SimpleSeries> revenueSeries = entityManager.createNativeQuery("select to_char(date_trunc('month', coalesce(paid_at, now())), 'YYYY-MM') as month, coalesce(sum(amount),0) from payments group by 1 order by 1 desc limit 6")
                 .getResultList().stream().map(r -> new DashboardDto.SimpleSeries(String.valueOf(((Object[]) r)[0]), new BigDecimal(((Object[]) r)[1].toString()))).toList();
 
