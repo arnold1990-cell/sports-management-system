@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS256;
+
     private final Key key;
     private final long expirationMinutes;
 
@@ -34,11 +36,14 @@ public class JwtService {
                 .claim("roles", authorities)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusSeconds(expirationMinutes * 60)))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key, SIGNATURE_ALGORITHM)
                 .compact();
     }
 
     public Claims parseToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("JWT token must not be blank");
+        }
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
