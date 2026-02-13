@@ -16,6 +16,9 @@ import PostsPage from './pages/PostsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import AdminPostsPage from './pages/AdminPostsPage';
 import UsersPage from './pages/UsersPage';
+import ContactsPage from './pages/ContactsPage';
+import FacilitiesPage from './pages/FacilitiesPage';
+import SubscriptionsPage from './pages/SubscriptionsPage';
 
 const App: React.FC = () => {
   return (
@@ -73,6 +76,30 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute roles={["ADMIN"]}>
               <AdminPostsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <ContactsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facilities"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER", "COACH"]}>
+              <FacilitiesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscriptions"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <SubscriptionsPage />
             </ProtectedRoute>
           }
         />

@@ -37,6 +37,15 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {hasRole('ADMIN') && (
             <Button color="inherit" component={RouterLink} to="/competitions">Competitions</Button>
           )}
+          {(hasRole('ADMIN') || hasRole('MANAGER')) && (
+            <Button color="inherit" component={RouterLink} to="/contacts">Contacts</Button>
+          )}
+          {(hasRole('ADMIN') || hasRole('MANAGER') || hasRole('COACH')) && (
+            <Button color="inherit" component={RouterLink} to="/facilities">Facilities</Button>
+          )}
+          {(hasRole('ADMIN') || hasRole('MANAGER')) && (
+            <Button color="inherit" component={RouterLink} to="/subscriptions">Subscriptions</Button>
+          )}
           {hasRole('ADMIN') && (
             <Button color="inherit" component={RouterLink} to="/admin/posts">Admin Posts</Button>
           )}
