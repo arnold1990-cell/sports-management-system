@@ -2,6 +2,8 @@ package com.sportsms.config;
 
 import com.sportsms.auth.CustomUserDetailsService;
 import com.sportsms.auth.JwtAuthenticationFilter;
+import com.sportsms.security.RestAccessDeniedHandler;
+import com.sportsms.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,10 +31,17 @@ import java.util.Map;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          CustomUserDetailsService userDetailsService,
+                          RestAuthenticationEntryPoint authenticationEntryPoint,
+                          RestAccessDeniedHandler accessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -44,7 +53,12 @@ public class SecurityConfig {
                                 "/api/competitions/**").permitAll()
                         .requestMatchers("/api/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/posts/published/**", "/api/comments/**", "/api/standings/**", "/api/fixtures/public/**").permitAll()
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));

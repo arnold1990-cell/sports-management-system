@@ -4,6 +4,7 @@ import {
   Avatar,
   Badge,
   Box,
+  Button,
   Chip,
   Collapse,
   Container,
@@ -68,7 +69,7 @@ type NotificationItem = {
 const drawerWidth = 270;
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { accessToken, logout, hasRole, fullName } = useAuth();
+  const { isAuthenticated, logout, hasRole, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -77,7 +78,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label: 'Dashboard',
       icon: <Dashboard fontSize="small" />,
       items: [
-        { label: 'Overview', path: '/dashboard', icon: <Dashboard fontSize="small" />, visible: !!accessToken },
+        { label: 'Overview', path: '/dashboard', icon: <Dashboard fontSize="small" />, visible: isAuthenticated },
         {
           label: 'Analytics',
           path: '/subscriptions/analytics',
@@ -124,7 +125,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = React.useState<NotificationItem[]>([]);
 
   React.useEffect(() => {
-    if (!accessToken) {
+    if (!isAuthenticated) {
       setNotifications([]);
       return;
     }
@@ -140,7 +141,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         setNotifications(mapped);
       })
       .catch(() => setNotifications([]));
-  }, [accessToken]);
+  }, [isAuthenticated]);
 
   const unreadCount = notifications.filter((item) => !item.readAt).length;
 
@@ -225,7 +226,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>
             Sports Management Platform
           </Typography>
-          {accessToken && (
+          {isAuthenticated ? (
             <>
               <Tooltip title="Notifications">
                 <IconButton onClick={(event) => setNotificationAnchor(event.currentTarget)}>
@@ -235,9 +236,14 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </IconButton>
               </Tooltip>
               <IconButton onClick={(event) => setProfileAnchor(event.currentTarget)}>
-                <Avatar sx={{ width: 34, height: 34 }}>{(fullName || 'User').charAt(0).toUpperCase()}</Avatar>
+                <Avatar sx={{ width: 34, height: 34 }}>{(user?.fullName || 'User').charAt(0).toUpperCase()}</Avatar>
               </IconButton>
             </>
+          ) : (
+            <Stack direction="row" spacing={1}>
+              <Button color="inherit" component={RouterLink} to="/login">Login</Button>
+              <Button color="inherit" component={RouterLink} to="/register">Register</Button>
+            </Stack>
           )}
         </Toolbar>
       </AppBar>
@@ -286,7 +292,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </Menu>
 
       <Menu anchorEl={profileAnchor} open={Boolean(profileAnchor)} onClose={() => setProfileAnchor(null)}>
-        <MenuItem disabled>{fullName || 'User'}</MenuItem>
+        <MenuItem disabled>{user?.fullName || 'User'}</MenuItem>
         <MenuItem onClick={() => { setProfileAnchor(null); navigate('/dashboard'); }}>Dashboard</MenuItem>
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>

@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,15 @@ public class UserController {
         return new UserDto.UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRoles(), user.getCreatedAt());
     }
 
-    @PutMapping("/{userId}/roles")
+    @PutMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserDto.UserResponse updateUser(@PathVariable("userId") UUID userId,
+                                           @Valid @RequestBody UserDto.UpdateRolesRequest request) {
+        User user = userService.updateRoles(userId, request);
+        return new UserDto.UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRoles(), user.getCreatedAt());
+    }
+
+    @PatchMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public UserDto.UserResponse updateRoles(@PathVariable("userId") UUID userId,
                                             @Valid @RequestBody UserDto.UpdateRolesRequest request) {
