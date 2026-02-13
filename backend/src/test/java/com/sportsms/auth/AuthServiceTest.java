@@ -13,11 +13,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -36,11 +40,15 @@ class AuthServiceTest {
     @Mock
     private AuthenticationManager authenticationManager;
 
+    @Mock
+    private Environment environment;
+
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, refreshTokenRepository, passwordEncoder, jwtService, authenticationManager, 60L);
+        when(environment.getActiveProfiles()).thenReturn(new String[0]);
+        authService = new AuthService(userRepository, refreshTokenRepository, passwordEncoder, jwtService, authenticationManager, environment, 60L);
     }
 
     @Test
@@ -63,6 +71,38 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(request.email())).thenReturn(true);
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> authService.register(request));
+    }
+
+
+    @Test
+    void loginSucceedsForValidCredentials() {
+        AuthDto.LoginRequest request = new AuthDto.LoginRequest("user@example.com", "password123");
+        User user = new User();
+        user.setEmail(request.email());
+        user.setRoles(Set.of(Role.ADMIN));
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
+        when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any(String.class), any())).thenReturn("access-token");
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AuthDto.AuthResponse response = authService.login(request);
+
+        Assertions.assertEquals("access-token", response.accessToken());
+        Assertions.assertTrue(response.roles().contains(Role.ADMIN.name()));
+    }
+
+    @Test
+    void loginFailsWhenAuthenticationIsNotAuthenticated() {
+        AuthDto.LoginRequest request = new AuthDto.LoginRequest("user@example.com", "wrong-password");
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
+
+        Assertions.assertThrows(org.springframework.security.core.userdetails.UsernameNotFoundException.class,
+                () -> authService.login(request));
     }
 
     @Test
