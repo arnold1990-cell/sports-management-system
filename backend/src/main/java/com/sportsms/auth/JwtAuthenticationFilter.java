@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -32,24 +33,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         log.debug("JWT filter request path={}, hasAuthorizationHeader={}", request.getRequestURI(), header != null && !header.isBlank());
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            try {
-                Claims claims = jwtService.parseToken(token);
-                String subject = claims.getSubject();
-                List<String> roles = claims.get("roles", List.class);
-                var authorities = (roles == null ? List.<String>of() : roles).stream()
-                        .filter(Objects::nonNull)
-                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
+        if (header == null || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = header.substring(7);
+        try {
+            Claims claims = jwtService.parseToken(token);
+            String subject = claims.getSubject();
+            Collection<?> roleClaims = claims.get("roles", List.class);
+            var authorities = (roleClaims == null ? List.of() : roleClaims).stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .filter(role -> !role.isBlank())
+                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+
+            if (subject != null && !subject.isBlank()) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         subject, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception ex) {
-                SecurityContextHolder.clearContext();
-                log.debug("JWT parsing failed for path={}: {}", request.getRequestURI(), ex.getMessage());
             }
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            log.debug("JWT parsing failed for path={}: {}", request.getRequestURI(), ex.getMessage());
         }
 
         log.debug("JWT filter securityContextAuthenticated={}",
