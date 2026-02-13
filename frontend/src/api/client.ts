@@ -7,6 +7,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -18,7 +19,7 @@ api.interceptors.response.use(
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
       if (status === 401) {
-        const clearAuth = (window as any).__clearSportsMsAuth as undefined | (() => void);
+        const clearAuth = (window as { __clearSportsMsAuth?: () => void }).__clearSportsMsAuth;
         clearAuth?.();
         if (window.location.pathname !== '/login') {
           window.location.assign('/login');

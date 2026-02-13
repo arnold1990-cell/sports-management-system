@@ -49,9 +49,10 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/me").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/teams/**", "/api/players/**",
                                 "/api/competitions/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/posts/published/**", "/api/comments/**", "/api/standings/**", "/api/fixtures/public/**").permitAll()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
