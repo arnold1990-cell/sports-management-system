@@ -33,7 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String header = request.getHeader("Authorization");
-        log.debug("JWT filter request path={}, hasAuthorizationHeader={}", request.getRequestURI(), header != null && !header.isBlank());
+        String headerPreview = previewAuthorizationHeader(header);
+        log.debug("JWT filter request path={}, hasAuthorizationHeader={}, authorizationPreview={}",
+                request.getRequestURI(), header != null && !header.isBlank(), headerPreview);
 
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -46,6 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = header.substring(7);
+        if (token.isBlank() || "null".equalsIgnoreCase(token) || "undefined".equalsIgnoreCase(token)) {
+            log.debug("JWT filter skipped authentication for path={} because bearer token is blank/null-like", request.getRequestURI());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             Claims claims = jwtService.parseToken(token);
             String subject = claims.getSubject();
@@ -61,6 +69,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         subject, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("JWT filter set authentication for subject={} path={}", subject, request.getRequestURI());
+            } else {
+                log.debug("JWT filter skipped authentication for path={} because subject is blank", request.getRequestURI());
             }
         } catch (Exception ex) {
             SecurityContextHolder.clearContext();
@@ -81,5 +92,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return Stream.of(role);
         }
         return Stream.empty();
+    }
+
+    private String previewAuthorizationHeader(String header) {
+        if (header == null || header.isBlank()) {
+            return "<none>";
+        }
+        int previewLength = Math.min(15, header.length());
+        return header.substring(0, previewLength);
     }
 }

@@ -25,6 +25,17 @@ type AuthContextValue = AuthState & {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const sanitizeToken = (token: string | null): string | null => {
+  if (!token) {
+    return null;
+  }
+  const normalized = token.trim().toLowerCase();
+  if (!normalized || normalized === 'null' || normalized === 'undefined') {
+    return null;
+  }
+  return token;
+};
+
 const loadStoredRoles = () => {
   try {
     const stored = JSON.parse(localStorage.getItem('roles') || '[]');
@@ -34,9 +45,12 @@ const loadStoredRoles = () => {
   }
 };
 
+const initialAccessToken = sanitizeToken(localStorage.getItem('accessToken'));
+const initialRefreshToken = sanitizeToken(localStorage.getItem('refreshToken'));
+
 const initialState: AuthState = {
-  accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
+  accessToken: initialAccessToken,
+  refreshToken: initialRefreshToken,
   roles: loadStoredRoles(),
   user: localStorage.getItem('userId')
     ? {
@@ -47,13 +61,16 @@ const initialState: AuthState = {
     : null
 };
 
-const persistAuth = (accessToken: string, refreshToken: string, roles: string[], user: AuthUser) => {
+const persistAuth = (accessToken: string, refreshToken: string, roles: string[], user: AuthUser | null) => {
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
   localStorage.setItem('roles', JSON.stringify(roles));
-  localStorage.setItem('userId', user.id);
-  localStorage.setItem('email', user.email);
-  localStorage.setItem('fullName', user.fullName);
+
+  if (user) {
+    localStorage.setItem('userId', user.id);
+    localStorage.setItem('email', user.email);
+    localStorage.setItem('fullName', user.fullName);
+  }
 };
 
 const clearStoredAuth = () => {
@@ -80,12 +97,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   React.useEffect(() => {
     const syncStoredSession = async () => {
-      if (!state.accessToken || state.user) {
+      const token = sanitizeToken(state.accessToken);
+      if (!token) {
+        if (state.accessToken) {
+          clearAuth();
+        }
         return;
       }
+
+      if (state.user) {
+        return;
+      }
+
       try {
         const user = await fetchProfile();
-        persistAuth(state.accessToken, state.refreshToken || '', state.roles, user);
+        persistAuth(token, state.refreshToken || '', state.roles, user);
         setState((prev) => ({ ...prev, user }));
       } catch {
         clearAuth();
@@ -104,6 +130,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const response = await api.post('/api/auth/login', { email, password });
     const { accessToken, refreshToken, roles } = response.data;
+
+    persistAuth(accessToken, refreshToken, roles, null);
+    setState({ accessToken, refreshToken, roles, user: null });
+
     const user = await fetchProfile();
     persistAuth(accessToken, refreshToken, roles, user);
     setState({ accessToken, refreshToken, roles, user });
@@ -112,13 +142,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, fullName: string) => {
     const response = await api.post('/api/auth/register', { email, password, fullName });
     const { accessToken, refreshToken, roles } = response.data;
+
+    persistAuth(accessToken, refreshToken, roles, null);
+    setState({ accessToken, refreshToken, roles, user: null });
+
     const user = await fetchProfile();
     persistAuth(accessToken, refreshToken, roles, user);
     setState({ accessToken, refreshToken, roles, user });
   };
 
   const logout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = sanitizeToken(localStorage.getItem('refreshToken'));
     if (refreshToken) {
       await api.post('/api/auth/logout', { refreshToken });
     }
@@ -130,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = useMemo(
     () => ({
       ...state,
-      isAuthenticated: Boolean(state.accessToken),
+      isAuthenticated: Boolean(sanitizeToken(state.accessToken)),
       login,
       register,
       logout,
