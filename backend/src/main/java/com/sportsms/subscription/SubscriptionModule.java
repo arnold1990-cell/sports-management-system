@@ -30,8 +30,6 @@ record PlanRequest(String name, String type, BigDecimal amount, String currency,
 record SubscriptionRequest(SubscriberType subscriberType, UUID subscriberId, UUID planId, boolean autoRenew) {}
 record PaymentRequest(@NotNull UUID subscriptionId, PaymentProviderType provider, BigDecimal amount, String currency) {}
 record VerifyResponse(UUID paymentId, PaymentStatus status, String message) {}
-record RiskItem(UUID subscriptionId, int riskScore, long overdueDays) {}
-
 interface PaymentProvider { VerifyResponse verify(Payment payment); }
 
 @Service class MockPaymentProvider implements PaymentProvider {
