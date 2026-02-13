@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,16 @@ public class AuthService {
         if (!authentication.isAuthenticated()) {
             throw new UsernameNotFoundException("Invalid credentials");
         }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            return issueTokens(userPrincipal.getUser());
+        }
+        if (principal instanceof UserDetails userDetails) {
+            User user = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            return issueTokens(user);
+        }
+
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return issueTokens(user);
