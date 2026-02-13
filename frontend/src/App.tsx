@@ -19,6 +19,7 @@ import UsersPage from './pages/UsersPage';
 import ContactsPage from './pages/ContactsPage';
 import FacilitiesPage from './pages/FacilitiesPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
+import SubscriptionAnalyticsPage from './pages/SubscriptionAnalyticsPage';
 
 const App: React.FC = () => {
   return (
@@ -100,6 +101,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
               <SubscriptionsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subscriptions/analytics"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <SubscriptionAnalyticsPage />
             </ProtectedRoute>
           }
         />
