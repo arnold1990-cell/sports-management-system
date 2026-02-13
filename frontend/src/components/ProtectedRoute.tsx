@@ -1,21 +1,17 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface Props {
   children: React.ReactElement;
-  roles?: string[];
 }
 
-const ProtectedRoute: React.FC<Props> = ({ children, roles }) => {
-  const { accessToken, roles: userRoles } = useAuth();
+const ProtectedRoute: React.FC<Props> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  if (!accessToken) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (roles && !roles.some((role) => userRoles.includes(role))) {
-    return <Navigate to="/" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return children;

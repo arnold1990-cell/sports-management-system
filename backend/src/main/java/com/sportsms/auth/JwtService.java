@@ -25,10 +25,14 @@ public class JwtService {
     }
 
     public String generateToken(String subject, List<String> roles) {
+        List<String> authorities = roles.stream()
+                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                .toList();
         Instant now = Instant.now();
         return Jwts.builder()
                 .setSubject(subject)
                 .claim("roles", roles)
+                .claim("authorities", authorities)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusSeconds(expirationMinutes * 60)))
                 .signWith(key, SignatureAlgorithm.HS256)

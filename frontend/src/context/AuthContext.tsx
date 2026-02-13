@@ -1,18 +1,25 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import api from '../api/client';
 
+type AuthUser = {
+  id: string;
+  email: string;
+  fullName: string;
+};
+
 type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   roles: string[];
-  userId: string | null;
-  fullName: string | null;
+  user: AuthUser | null;
 };
 
 type AuthContextValue = AuthState & {
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => Promise<void>;
+  clearAuth: () => void;
   hasRole: (role: string) => boolean;
 };
 
@@ -27,55 +34,87 @@ const loadStoredRoles = () => {
   }
 };
 
-const normalizeRoles = (roles: string[] | Set<string>) => Array.from(roles);
-
 const initialState: AuthState = {
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
   roles: loadStoredRoles(),
-  userId: localStorage.getItem('userId'),
-  fullName: localStorage.getItem('fullName'),
+  user: localStorage.getItem('userId')
+    ? {
+        id: localStorage.getItem('userId') as string,
+        email: localStorage.getItem('email') || '',
+        fullName: localStorage.getItem('fullName') || ''
+      }
+    : null
+};
+
+const persistAuth = (accessToken: string, refreshToken: string, roles: string[], user: AuthUser) => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+  localStorage.setItem('roles', JSON.stringify(roles));
+  localStorage.setItem('userId', user.id);
+  localStorage.setItem('email', user.email);
+  localStorage.setItem('fullName', user.fullName);
+};
+
+const clearStoredAuth = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('roles');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('email');
+  localStorage.removeItem('fullName');
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>(initialState);
 
+  const clearAuth = React.useCallback(() => {
+    clearStoredAuth();
+    setState({ accessToken: null, refreshToken: null, roles: [], user: null });
+  }, []);
+
+  const fetchProfile = React.useCallback(async (): Promise<AuthUser> => {
+    const profile = await api.get('/api/auth/me');
+    return { id: profile.data.id, email: profile.data.email, fullName: profile.data.fullName };
+  }, []);
+
   React.useEffect(() => {
-    const fetchProfile = async () => {
-      if (state.accessToken && !state.userId) {
-        const profile = await api.get('/api/auth/me');
-        localStorage.setItem('userId', profile.data.id);
-        localStorage.setItem('fullName', profile.data.fullName);
-        setState((prev) => ({ ...prev, userId: profile.data.id, fullName: profile.data.fullName }));
+    const syncStoredSession = async () => {
+      if (!state.accessToken || state.user) {
+        return;
+      }
+      try {
+        const user = await fetchProfile();
+        persistAuth(state.accessToken, state.refreshToken || '', state.roles, user);
+        setState((prev) => ({ ...prev, user }));
+      } catch {
+        clearAuth();
       }
     };
-    fetchProfile();
-  }, [state.accessToken, state.userId]);
+    syncStoredSession();
+  }, [clearAuth, fetchProfile, state.accessToken, state.refreshToken, state.roles, state.user]);
+
+  React.useEffect(() => {
+    (window as any).__clearSportsMsAuth = clearAuth;
+    return () => {
+      delete (window as any).__clearSportsMsAuth;
+    };
+  }, [clearAuth]);
 
   const login = async (email: string, password: string) => {
     const response = await api.post('/api/auth/login', { email, password });
     const { accessToken, refreshToken, roles } = response.data;
-    const normalizedRoles = normalizeRoles(roles);
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('roles', JSON.stringify(normalizedRoles));
-    const profile = await api.get('/api/auth/me');
-    localStorage.setItem('userId', profile.data.id);
-    localStorage.setItem('fullName', profile.data.fullName);
-    setState({ accessToken, refreshToken, roles: normalizedRoles, userId: profile.data.id, fullName: profile.data.fullName });
+    const user = await fetchProfile();
+    persistAuth(accessToken, refreshToken, roles, user);
+    setState({ accessToken, refreshToken, roles, user });
   };
 
   const register = async (email: string, password: string, fullName: string) => {
     const response = await api.post('/api/auth/register', { email, password, fullName });
     const { accessToken, refreshToken, roles } = response.data;
-    const normalizedRoles = normalizeRoles(roles);
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('roles', JSON.stringify(normalizedRoles));
-    const profile = await api.get('/api/auth/me');
-    localStorage.setItem('userId', profile.data.id);
-    localStorage.setItem('fullName', profile.data.fullName);
-    setState({ accessToken, refreshToken, roles: normalizedRoles, userId: profile.data.id, fullName: profile.data.fullName });
+    const user = await fetchProfile();
+    persistAuth(accessToken, refreshToken, roles, user);
+    setState({ accessToken, refreshToken, roles, user });
   };
 
   const logout = async () => {
@@ -83,19 +122,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (refreshToken) {
       await api.post('/api/auth/logout', { refreshToken });
     }
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('roles');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('fullName');
-    setState({ accessToken: null, refreshToken: null, roles: [], userId: null, fullName: null });
+    clearAuth();
   };
 
   const hasRole = (role: string) => state.roles.includes(role);
 
   const value = useMemo(
-    () => ({ ...state, login, register, logout, hasRole }),
-    [state]
+    () => ({
+      ...state,
+      isAuthenticated: Boolean(state.accessToken),
+      login,
+      register,
+      logout,
+      clearAuth,
+      hasRole
+    }),
+    [state, clearAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

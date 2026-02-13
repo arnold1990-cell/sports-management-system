@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Card, CardContent, TextField, Typography, Grid, MenuItem, Alert, CircularProgress } from '@mui/material';
 import api from '../api/client';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -12,6 +13,7 @@ interface User {
 const roleOptions = ['ADMIN', 'MANAGER', 'COACH', 'PLAYER', 'REFEREE', 'VIEWER'];
 
 const UsersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,6 +25,15 @@ const UsersPage: React.FC = () => {
       setUsers(response.data);
       setError(null);
     } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      if (status === 403) {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
       setError(err?.response?.data?.message || 'Unable to load users');
     } finally {
       setLoading(false);
@@ -35,9 +46,18 @@ const UsersPage: React.FC = () => {
 
   const updateRoles = async (userId: string, roles: string[]) => {
     try {
-      await api.put(`/api/users/${userId}/roles`, { roles });
+      await api.patch(`/api/users/${userId}`, { roles });
       await loadUsers();
     } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      if (status === 403) {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
       setError(err?.response?.data?.message || 'Unable to update roles');
     }
   };

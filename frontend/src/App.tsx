@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from './components/AppLayout';
-import ProtectedRoute from './components/ProtectedRoute';
+import RoleRoute from './components/RoleRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -20,6 +20,7 @@ import ContactsPage from './pages/ContactsPage';
 import FacilitiesPage from './pages/FacilitiesPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import SubscriptionAnalyticsPage from './pages/SubscriptionAnalyticsPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 
 const App: React.FC = () => {
   return (
@@ -28,46 +29,47 @@ const App: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/posts" element={<PostsPage />} />
         <Route path="/posts/:id" element={<PostDetailPage />} />
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER", "COACH"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER", "COACH"]}>
               <DashboardPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/clubs"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER"]}>
               <ClubsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/teams"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER", "COACH"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER", "COACH"]}>
               <TeamsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/players"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER", "COACH"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER", "COACH"]}>
               <PlayersPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/competitions"
           element={
-            <ProtectedRoute roles={["ADMIN"]}>
+            <RoleRoute roles={["ADMIN"]}>
               <CompetitionsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route path="/fixtures" element={<FixturesPage />} />
@@ -75,50 +77,50 @@ const App: React.FC = () => {
         <Route
           path="/admin/posts"
           element={
-            <ProtectedRoute roles={["ADMIN"]}>
+            <RoleRoute roles={["ADMIN"]}>
               <AdminPostsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/contacts"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER"]}>
               <ContactsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/facilities"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER", "COACH"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER", "COACH"]}>
               <FacilitiesPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/subscriptions"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER"]}>
               <SubscriptionsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
 
         <Route
           path="/subscriptions/analytics"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+            <RoleRoute roles={["ADMIN", "MANAGER"]}>
               <SubscriptionAnalyticsPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute roles={["ADMIN"]}>
+            <RoleRoute roles={["ADMIN"]}>
               <UsersPage />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
       </Routes>
