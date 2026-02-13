@@ -20,11 +20,11 @@ public class PostService {
     }
 
     public Page<Post> searchPublished(String keyword, Instant from, Instant to, Pageable pageable) {
-        return postRepository.searchPublished(keyword, from, to, pageable);
+        return postRepository.searchPublished(normalizeKeyword(keyword), from, to, pageable);
     }
 
     public Page<Post> searchAll(String keyword, PostStatus status, Pageable pageable) {
-        return postRepository.searchAll(keyword, status, pageable);
+        return postRepository.searchAll(normalizeKeyword(keyword), status != null ? status.name() : null, pageable);
     }
 
     public Post getPublished(UUID id) {
@@ -77,5 +77,12 @@ public class PostService {
             throw new NotFoundException("Post not found");
         }
         postRepository.deleteById(id);
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
     }
 }
