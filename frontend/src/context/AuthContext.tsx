@@ -5,6 +5,7 @@ type AuthUser = {
   id: string;
   email: string;
   fullName: string;
+  roles: string[];
 };
 
 type AuthState = {
@@ -25,26 +26,11 @@ type AuthContextValue = AuthState & {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const loadStoredRoles = () => {
-  try {
-    const stored = JSON.parse(localStorage.getItem('roles') || '[]');
-    return Array.isArray(stored) ? stored : [];
-  } catch {
-    return [];
-  }
-};
-
 const initialState: AuthState = {
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
-  roles: loadStoredRoles(),
-  user: localStorage.getItem('userId')
-    ? {
-        id: localStorage.getItem('userId') as string,
-        email: localStorage.getItem('email') || '',
-        fullName: localStorage.getItem('fullName') || ''
-      }
-    : null
+  roles: [],
+  user: null
 };
 
 const persistAuth = (accessToken: string, refreshToken: string, roles: string[], user: AuthUser) => {
@@ -75,7 +61,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = React.useCallback(async (): Promise<AuthUser> => {
     const profile = await api.get('/api/auth/me');
-    return { id: profile.data.id, email: profile.data.email, fullName: profile.data.fullName };
+    const profileRoles = Array.isArray(profile.data.roles) ? profile.data.roles : [];
+    return {
+      id: profile.data.id,
+      email: profile.data.email,
+      fullName: profile.data.fullName,
+      roles: profileRoles
+    };
   }, []);
 
   React.useEffect(() => {
@@ -85,8 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       try {
         const user = await fetchProfile();
-        persistAuth(state.accessToken, state.refreshToken || '', state.roles, user);
-        setState((prev) => ({ ...prev, user }));
+        persistAuth(state.accessToken, state.refreshToken || '', user.roles, user);
+        setState((prev) => ({ ...prev, roles: user.roles, user }));
       } catch {
         clearAuth();
       }
@@ -103,18 +95,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const response = await api.post('/api/auth/login', { email, password });
-    const { accessToken, refreshToken, roles } = response.data;
+    const { accessToken, refreshToken } = response.data;
     const user = await fetchProfile();
-    persistAuth(accessToken, refreshToken, roles, user);
-    setState({ accessToken, refreshToken, roles, user });
+    persistAuth(accessToken, refreshToken, user.roles, user);
+    setState({ accessToken, refreshToken, roles: user.roles, user });
   };
 
   const register = async (email: string, password: string, fullName: string) => {
     const response = await api.post('/api/auth/register', { email, password, fullName });
-    const { accessToken, refreshToken, roles } = response.data;
+    const { accessToken, refreshToken } = response.data;
     const user = await fetchProfile();
-    persistAuth(accessToken, refreshToken, roles, user);
-    setState({ accessToken, refreshToken, roles, user });
+    persistAuth(accessToken, refreshToken, user.roles, user);
+    setState({ accessToken, refreshToken, roles: user.roles, user });
   };
 
   const logout = async () => {
@@ -130,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = useMemo(
     () => ({
       ...state,
-      isAuthenticated: Boolean(state.accessToken),
+      isAuthenticated: Boolean(state.accessToken && state.user),
       login,
       register,
       logout,
