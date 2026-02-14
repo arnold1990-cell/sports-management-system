@@ -16,8 +16,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
               and (:keyword is null
                    or p.title ilike concat('%', :keyword, '%')
                    or p.content ilike concat('%', :keyword, '%'))
-              and p.created_at >= coalesce(cast(:fromDate as timestamptz), '-infinity'::timestamptz)
-              and p.created_at <= coalesce(cast(:toDate as timestamptz), 'infinity'::timestamptz)
+              and p.created_at >= coalesce(cast(:startDate as timestamptz), '-infinity'::timestamptz)
+              and p.created_at <= coalesce(cast(:endDate as timestamptz), 'infinity'::timestamptz)
             order by p.created_at desc
             """,
             countQuery = """
@@ -27,13 +27,13 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
                       and (:keyword is null
                            or p.title ilike concat('%', :keyword, '%')
                            or p.content ilike concat('%', :keyword, '%'))
-                      and p.created_at >= coalesce(cast(:fromDate as timestamptz), '-infinity'::timestamptz)
-                      and p.created_at <= coalesce(cast(:toDate as timestamptz), 'infinity'::timestamptz)
+                      and p.created_at >= coalesce(cast(:startDate as timestamptz), '-infinity'::timestamptz)
+                      and p.created_at <= coalesce(cast(:endDate as timestamptz), 'infinity'::timestamptz)
                     """,
             nativeQuery = true)
     Page<Post> searchPublished(@Param("keyword") String keyword,
-                               @Param("fromDate") Instant fromDate,
-                               @Param("toDate") Instant toDate,
+                               @Param("startDate") Instant startDate,
+                               @Param("endDate") Instant endDate,
                                Pageable pageable);
 
     @Query(value = """

@@ -30,11 +30,11 @@ public class PostController {
     @GetMapping("/published")
     public Page<PostDto.PostResponse> listPublished(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Instant from,
-            @RequestParam(required = false) Instant to,
+            @RequestParam(required = false) Instant startDate,
+            @RequestParam(required = false) Instant endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<Post> posts = postService.searchPublished(keyword, from, to,
+        Page<Post> posts = postService.searchPublished(keyword, startDate, endDate,
                 PageRequest.of(page, size));
         return posts.map(this::toResponse);
     }

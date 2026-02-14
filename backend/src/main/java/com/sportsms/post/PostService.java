@@ -19,8 +19,8 @@ public class PostService {
         this.userRepository = userRepository;
     }
 
-    public Page<Post> searchPublished(String keyword, Instant from, Instant to, Pageable pageable) {
-        return postRepository.searchPublished(normalizeKeyword(keyword), from, to, pageable);
+    public Page<Post> searchPublished(String keyword, Instant startDate, Instant endDate, Pageable pageable) {
+        return postRepository.searchPublished(normalizeKeyword(keyword), startDate, endDate, pageable);
     }
 
     public Page<Post> searchAll(String keyword, PostStatus status, Pageable pageable) {
