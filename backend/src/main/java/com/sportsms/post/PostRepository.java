@@ -16,8 +16,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
               and (:keyword is null
                    or p.title ilike concat('%', :keyword, '%')
                    or p.content ilike concat('%', :keyword, '%'))
-              and p.created_at >= coalesce(cast(:startDate as timestamptz), '-infinity'::timestamptz)
-              and p.created_at <= coalesce(cast(:endDate as timestamptz), 'infinity'::timestamptz)
+              and p.created_at >= coalesce(cast(:startDate as timestamptz), cast('-infinity' as timestamptz))
+              and p.created_at <= coalesce(cast(:endDate as timestamptz), cast('infinity' as timestamptz))
             order by p.created_at desc
             """,
             countQuery = """
@@ -27,8 +27,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
                       and (:keyword is null
                            or p.title ilike concat('%', :keyword, '%')
                            or p.content ilike concat('%', :keyword, '%'))
-                      and p.created_at >= coalesce(cast(:startDate as timestamptz), '-infinity'::timestamptz)
-                      and p.created_at <= coalesce(cast(:endDate as timestamptz), 'infinity'::timestamptz)
+                      and p.created_at >= coalesce(cast(:startDate as timestamptz), cast('-infinity' as timestamptz))
+                      and p.created_at <= coalesce(cast(:endDate as timestamptz), cast('infinity' as timestamptz))
                     """,
             nativeQuery = true)
     Page<Post> searchPublished(@Param("keyword") String keyword,
