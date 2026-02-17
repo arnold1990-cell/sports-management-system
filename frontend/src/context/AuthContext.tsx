@@ -24,6 +24,7 @@ type AuthContextValue = AuthState & {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AUTH_LOGIN_ENDPOINT = '/api/auth/login';
 
 const sanitizeToken = (token: string | null): string | null => {
   if (!token) {
@@ -128,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [clearAuth]);
 
   const login = async (email: string, password: string) => {
-    const response = await api.post('/api/auth/login', { email, password });
+    const response = await api.post(AUTH_LOGIN_ENDPOINT, { email, password });
     const { accessToken, refreshToken, roles } = response.data;
 
     persistAuth(accessToken, refreshToken, roles, null);

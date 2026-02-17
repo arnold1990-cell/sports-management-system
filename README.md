@@ -6,6 +6,8 @@ A full-stack sports management platform with role-based access, club/team/player
 ## Repository Structure
 - `/backend` Spring Boot 3.x application
 - `/frontend` React + Vite + TypeScript application
+- `/deploy/systemd` production systemd templates
+- `/deploy/nginx` production nginx reverse-proxy template
 - `docker-compose.yml` PostgreSQL (and pgAdmin)
 
 ## Backend Setup
@@ -20,7 +22,7 @@ A full-stack sports management platform with role-based access, club/team/player
 docker compose up -d
 ```
 
-### Run Backend
+### Run Backend (local)
 ```bash
 cd backend
 mvn spring-boot:run
@@ -41,7 +43,7 @@ Backend runs at `http://localhost:8080`.
 ### Prerequisites
 - Node.js 18+
 
-### Run Frontend
+### Run Frontend (development)
 ```bash
 cd frontend
 npm install
@@ -50,15 +52,60 @@ npm run dev
 
 Frontend runs at `http://localhost:5173`.
 
+### Build Frontend (production bundle)
+```bash
+cd frontend
+npm run build
+```
+
+### Serve Frontend Bundle (simple static plan)
+```bash
+cd frontend
+npx serve -s dist -l 4173
+```
+
 ## Environment Variables
 
-### Backend (`backend/.env.example`)
+### Backend
 - `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
 - `JWT_SECRET`
 - `UPLOAD_DIR`, `UPLOAD_BASE_URL`
+- `APP_CORS_ALLOWED_ORIGINS` (comma-separated allowlist)
 
-### Frontend (`frontend/.env.example`)
-- `VITE_API_URL` (default `http://localhost:8080`)
+### Frontend
+- `VITE_API_BASE_URL` (for axios base URL)
+
+Example files are provided in:
+- `frontend/.env.development`
+- `frontend/.env.production`
+
+## VPS Deployment
+
+### systemd backend service
+Use templates from:
+- `deploy/systemd/sportsms.service`
+- `deploy/systemd/sportsms.env`
+
+Typical install commands:
+```bash
+sudo cp deploy/systemd/sportsms.service /etc/systemd/system/sportsms.service
+sudo cp deploy/systemd/sportsms.env /opt/sportsms/sportsms.env
+sudo systemctl daemon-reload
+sudo systemctl enable --now sportsms
+sudo systemctl status sportsms
+```
+
+### Optional nginx reverse proxy
+Use template:
+- `deploy/nginx/sportsms.conf`
+
+Typical install commands:
+```bash
+sudo cp deploy/nginx/sportsms.conf /etc/nginx/sites-available/sportsms
+sudo ln -s /etc/nginx/sites-available/sportsms /etc/nginx/sites-enabled/sportsms
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
 ## Sample API Requests
 
@@ -98,5 +145,5 @@ curl -X POST http://localhost:8080/api/comments/post/<POST_ID> \
 ```
 
 ## Notes
-- JWT tokens are stored in localStorage in the frontend.
-- CORS is configured for `http://localhost:5173`.
+- JWT tokens are stored in localStorage in the frontend and attached automatically by `frontend/src/api/client.ts`.
+- CORS allowlist is configured in backend security with `APP_CORS_ALLOWED_ORIGINS`.
