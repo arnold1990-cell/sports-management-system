@@ -1,0 +1,17 @@
+[Unit]
+Description=Sports Management System Backend (Spring Boot)
+After=network.target
+
+[Service]
+Type=simple
+User=sportsms
+Group=sportsms
+WorkingDirectory=/opt/sportsms
+EnvironmentFile=/opt/sportsms/sportsms.env
+ExecStart=/usr/bin/java -jar /opt/sportsms/app.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

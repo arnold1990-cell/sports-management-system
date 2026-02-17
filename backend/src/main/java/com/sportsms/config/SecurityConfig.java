@@ -4,6 +4,7 @@ import com.sportsms.auth.CustomUserDetailsService;
 import com.sportsms.auth.JwtAuthenticationFilter;
 import com.sportsms.security.RestAccessDeniedHandler;
 import com.sportsms.security.RestAuthenticationEntryPoint;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
+
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://144.91.106.79,https://144.91.106.79}")
+    private String allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           CustomUserDetailsService userDetailsService,
@@ -49,12 +54,13 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**", "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register", "/api/auth/signup", "/api/auth/refresh").permitAll()
                         .requestMatchers("/api/auth/me").authenticated()
-                        .requestMatchers("/api/auth/**").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/teams/**", "/api/players/**",
                                 "/api/competitions/**").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/posts/published/**", "/api/comments/**", "/api/standings/**", "/api/fixtures/public/**").permitAll()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "MANAGER")
@@ -96,10 +102,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*") );
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
