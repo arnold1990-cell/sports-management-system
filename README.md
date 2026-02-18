@@ -67,7 +67,8 @@ npx serve -s dist -l 4173
 ## Environment Variables
 
 ### Backend
-- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+- `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
+- (legacy fallback still supported in app config: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`)
 - `JWT_SECRET`
 - `UPLOAD_DIR`, `UPLOAD_BASE_URL`
 - `APP_CORS_ALLOWED_ORIGINS` (comma-separated allowlist)
@@ -94,6 +95,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now sportsms
 sudo systemctl status sportsms
 ```
+
+
+For DB-name mismatch troubleshooting on VPS, follow:
+- `deploy/VPS_DATABASE_FIX_CHECKLIST.md`
 
 ### Optional nginx reverse proxy
 Use template:
