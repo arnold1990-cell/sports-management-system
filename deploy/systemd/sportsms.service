@@ -1,13 +1,16 @@
 [Unit]
 Description=Sports Management System Backend (Spring Boot)
-After=network.target
+After=network.target postgresql.service
 
 [Service]
 Type=simple
 User=sportsms
 Group=sportsms
 WorkingDirectory=/opt/sportsms
-EnvironmentFile=/opt/sportsms/sportsms.env
+Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/sportsms
+Environment=SPRING_DATASOURCE_USERNAME=postgres
+Environment=SPRING_DATASOURCE_PASSWORD=change-me
+EnvironmentFile=-/opt/sportsms/sportsms.env
 ExecStart=/usr/bin/java -jar /opt/sportsms/app.jar
 SuccessExitStatus=143
 Restart=always
