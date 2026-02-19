@@ -30,6 +30,13 @@ mvn spring-boot:run
 
 Backend runs at `http://localhost:8080`.
 
+#### Database host note (fix for `UnknownHostException: postgres`)
+If you see `UnknownHostException: postgres` when starting the backend from your IDE or terminal, your `DB_URL` is pointing at the Docker network hostname. That hostname only resolves **inside** Docker. For local runs, either unset `DB_URL` or set it to:
+```
+jdbc:postgresql://localhost:5432/sportsms
+```
+Use `backend/.env.example` as a reference for local values.
+
 ### API Docs
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/api-docs`
