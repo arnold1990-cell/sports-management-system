@@ -21,6 +21,8 @@ spring:
 server:
   port: 8080
 app:
+  flyway:
+    repair-on-startup: ${APP_FLYWAY_REPAIR_ON_STARTUP:true}
   jwt:
     secret: ${JWT_SECRET:dev-secret-key-change}
     expiration-minutes: 60
