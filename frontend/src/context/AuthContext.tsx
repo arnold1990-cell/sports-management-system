@@ -132,6 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const response = await api.post(AUTH_LOGIN_ENDPOINT, { email, password });
     const { accessToken, refreshToken, roles } = response.data;
 
+    // Ensure tokens are available immediately after login.
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+
     persistAuth(accessToken, refreshToken, roles, null);
     setState({ accessToken, refreshToken, roles, user: null });
 
