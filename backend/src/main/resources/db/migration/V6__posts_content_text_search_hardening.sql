@@ -17,7 +17,8 @@ BEGIN
         EXCEPTION
             WHEN character_not_in_repertoire OR untranslatable_character THEN
                 ALTER TABLE posts ADD COLUMN IF NOT EXISTS content_text text;
-                UPDATE posts SET content_text = encode(content, 'escape');
+                UPDATE posts
+                SET content_text = COALESCE(encode(content, 'escape'), '');
                 ALTER TABLE posts ALTER COLUMN content_text SET NOT NULL;
                 ALTER TABLE posts DROP COLUMN content;
                 ALTER TABLE posts RENAME COLUMN content_text TO content;
